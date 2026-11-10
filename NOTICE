@@ -1,0 +1,28 @@
+NOTICE
+
+This project is a modified and enhanced edition of:
+
+    wechat-bridge by Califormer
+    https://github.com/Califormer/wechat-bridge
+    Copyright (c) 2026 Califormer, released under the MIT License
+    (see the LICENSE file in this repository).
+
+The bridge core (bridge.py, ops/, tests/, the inbox and long-task hooks,
+and the executor manuals) comes from that project, implementing Tencent's
+official openclaw-weixin (iLink Bot API) protocol.
+
+Enhancements in this edition (2026-11, by the Cooper deployment):
+  - hooks/wechat-window-reminder.* : a two-stage 24 h reply-window
+    keep-alive reminder (a proactive nudge inside WeChat at <= 4 h left,
+    then an App-side reminder at <= 60 min left or after the window closed).
+  - install.sh : one-click deployment for the Muse (Hatch) runtime -
+    relocates the tree to ~/workspace/wechat-bridge, installs Python
+    dependencies into vendor/py (survives VM replacement), writes the
+    service proxy env, installs the systemd unit and the hook scripts,
+    then runs the test suite and the doctor.
+  - DEPLOY.md : an agent-facing deployment runbook (hook registration,
+    QR login flow, two-layer acceptance).
+  - README.md : rewritten quick start and an enhancements section.
+
+The MIT License terms of the original work continue to apply to the whole
+combined work; the LICENSE file is preserved unmodified.
