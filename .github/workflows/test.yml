@@ -1,0 +1,98 @@
+name: offline tests
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # The runner image preinstalls an importable cryptography (run #10
+      # proved it: the bare-import assertion failed in 3 s). Without a
+      # shadow, job 1 would silently test the cryptography backend twice
+      # and never exercise ctypes. The shadow package raises ImportError,
+      # so bridge.py falls through to ctypes exactly as on a machine
+      # without the package. It only affects this job's Python processes.
+      PYTHONPATH: ${{ github.workspace }}/.ci-no-crypto
+    steps:
+      - uses: actions/checkout@v4
+      - name: Simulate absence of cryptography (shadow package)
+        run: |
+          mkdir -p .ci-no-crypto/cryptography
+          printf 'raise ImportError("blocked: no-cryptography matrix")\n' > .ci-no-crypto/cryptography/__init__.py
+      - name: Assert no-cryptography matrix (backend must be ctypes)
+        run: |
+          if python3 -c "import cryptography" 2>/dev/null; then
+            echo "cryptography is importable: job 1 no longer tests the ctypes path" >&2
+            exit 1
+          fi
+          python3 - <<'PY'
+          import importlib.util, shutil, tempfile
+          from pathlib import Path
+          d = Path(tempfile.mkdtemp())
+          shutil.copy("bridge.py", d / "bridge.py")
+          spec = importlib.util.spec_from_file_location("m", d / "bridge.py")
+          m = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(m)
+          m.log = lambda msg: None
+          backend = m._aes_backend()
+          assert backend == "ctypes", backend
+          print(f"backend={backend} ok")
+          PY
+      - name: Install ffmpeg (voice tests generate audio with it)
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Fixtures are tracked (gitignore must not exclude them)
+        run: |
+          git ls-files tests/fixtures | grep -q 'bridge.py.v1'
+          git ls-files tests/fixtures | grep -q 'bridge.py.v3'
+      - name: Syntax check
+        run: |
+          python3 -m py_compile bridge.py ops/*.py
+          for f in ops/*.sh hooks/*.sh; do bash -n "$f"; done
+      - name: Offline regression suite (no cryptography installed)
+        run: |
+          for t in test_v3 test_v4 test_v5 test_offline test_resume test_round2 \
+                   test_hook test_watchdog test_opt_20261102 test_opt6_20261102 \
+                   test_opt6b_20261102 test_proxy_failover \
+                   test_redirect_guard test_serve_e2e test_v4_e2e test_v5_e2e \
+                   test_open_fixes_20261103 test_decisions_migrate_20261103; do
+            echo "=== $t ==="
+            python3 "tests/$t.py"
+          done
+  test-cryptography:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ffmpeg (voice tests generate audio with it)
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install cryptography (the backend most dev machines have)
+        run: python3 -m pip install --user cryptography
+      - name: Assert cryptography matrix (backend must be cryptography)
+        run: |
+          python3 - <<'PY'
+          import importlib.util, shutil, tempfile
+          from pathlib import Path
+          d = Path(tempfile.mkdtemp())
+          shutil.copy("bridge.py", d / "bridge.py")
+          spec = importlib.util.spec_from_file_location("m", d / "bridge.py")
+          m = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(m)
+          m.log = lambda msg: None
+          backend = m._aes_backend()
+          assert backend == "cryptography", backend
+          print(f"backend={backend} ok")
+          PY
+      - name: AES-sensitive suite under the cryptography backend
+        run: |
+          for t in test_v4 test_v5 test_offline test_open_fixes_20261103 \
+                   test_decisions_migrate_20261103; do
+            echo "=== $t (cryptography) ==="
+            python3 "tests/$t.py"
+          done
