@@ -2,7 +2,7 @@
 
 [中文版](README.md) · [Operations guide (Chinese)](docs/OPERATIONS.md) · [Operations guide (English)](docs/OPERATIONS.en.md)
 
-> **Enhanced edition** based on [Califormer/wechat-bridge](https://github.com/Califormer/wechat-bridge) (MIT, see `NOTICE`). Additions: one-click deployment for the Muse runtime (`install.sh` + the agent runbook `DEPLOY.md`, Chinese) and a two-stage 24 h reply-window keep-alive reminder (`hooks/wechat-window-reminder.*`: a proactive nudge inside WeChat at ~4 h left, then an App-side reminder at ~1 h left). The bridge core below is upstream v1.7, unchanged.
+> **Enhanced edition** based on [Califormer/wechat-bridge](https://github.com/Califormer/wechat-bridge) (MIT, see `NOTICE`). Additions: one-click deployment for any AI agent runtime (Muse is the tested reference) (`install.sh` + the agent runbook `DEPLOY.md`, Chinese) and a two-stage 24 h reply-window keep-alive reminder (`hooks/wechat-window-reminder.*`: a proactive nudge inside WeChat at ~4 h left, then an App-side reminder at ~1 h left). The bridge core below is upstream v1.7, unchanged.
 
 A WeChat send/receive bridge implemented directly against Tencent's
 official openclaw-weixin backend protocol (`https://ilinkai.weixin.qq.com`,
