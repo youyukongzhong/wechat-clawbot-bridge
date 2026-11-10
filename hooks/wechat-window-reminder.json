@@ -1,0 +1,13 @@
+{
+ "version": 1,
+ "id": "wechat-window-reminder",
+ "enabled": true,
+ "script_path": "~/hooks/scripts/wechat-window-reminder.sh",
+ "prompt": "你是微信 ClawBot 回复窗口提醒的执行者。wake 的 reason 是 wechat_window_reminder，payload 里有 remaining_min（窗口还剩多少分钟，可能为 0 或负数）、open（窗口是否还开着）、age_hours（距机主上次给微信机器人发消息已多少小时）。\n\n你唯一要做的事：在执行总结里给机主写一条简短提醒（这条总结会送达 Muse App 的聊天），内容是：微信 ClawBot 的回复窗口快关了（或已经关了），他已经约 X 小时没给那个机器人发消息了，请他打开微信、给 ClawBot 机器人随便发一条消息（比如「1」）就能续上（或重新打开）窗口，这样助手才能继续主动往微信里发消息。语气自然简短，像朋友提醒一句，不要长篇解释、不要列条目。\n\n不要执行其他任何任务，不要调用微信桥的 claim / complete / send-direct，不要往微信发消息（窗口正是快关了才走 App 这边提醒）。不要提及 hook、脚本、payload 这些内部词。\n",
+ "poll_interval_secs": 600,
+ "script_timeout_secs": 60,
+ "delivery": {
+  "surface": "main"
+ },
+ "presentation_locale": "zh-CN"
+}
